@@ -53,3 +53,5 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - sw01
+    - hspec
+    - hspec-core

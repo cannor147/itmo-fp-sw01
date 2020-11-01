@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4196032701e7c4ff0e5987e810f6c6330805b0b3dc9b48cc16b179ad28eefe02
+-- hash: 96c2d77c963afd06426cc70ffb4b37b94385524bb556919d95e78ba1398697d4
 
 name:           sw01
 version:        0.1.0.0
@@ -85,6 +85,8 @@ test-suite sw01-test
     , directory >=1.3.6.0
     , ghc >=8.8.4
     , ghc-prim >=0.5.3
+    , hspec
+    , hspec-core
     , mtl >=2.2.2
     , sw01
     , transformers >=0.5.6.2

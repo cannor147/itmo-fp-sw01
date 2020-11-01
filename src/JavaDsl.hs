@@ -9,7 +9,7 @@ __ :: Show a => a -> b
 __ x = error $ "Unexpected expression: " <> show x
 
 ___ :: Show a => a -> a -> b
-___ x y = error $ "Unexpected combination of expressions: " <> show x <> show y
+___ x y = error $ "Unexpected combination of expressions: " <> show x <> " and " <> show y
 
 switch :: (Bool -> a) -> (Int -> a) -> (Double -> a) -> (String -> a) -> JValue -> a
 switch f _ _ _ (JBoolean a) = f a
@@ -115,6 +115,8 @@ class JavaDsl code where
   whileGroup   :: code JValue -> code () -> code ()
 
   program :: Bool -> code () -> code ()
-  fun0 :: String -> code JValue
+  clazz   :: String -> code() -> code ()
+  fun     :: String -> code() -> code ()
+  fun0    :: String -> code JValue
 --  fun1 :: code String -> code JValue -> code JValue
 --  fun2 :: code String -> code JValue -> code JValue -> code JValue

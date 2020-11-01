@@ -18,22 +18,17 @@ import Data.Map.Internal (Map)
 
 type Vars = Map String (Int, JValue)
 
-newtype Interpretator m s = Interpretator { interpret :: StateT Vars m s }
+newtype Interpretator m s = Interpretator { interpretDsl :: StateT Vars m s }
 
 instance Console m => Functor (Interpretator m) where
-  fmap f = Interpretator . fmap f . interpret
+  fmap f = Interpretator . fmap f . interpretDsl
 
 instance Console m => Applicative (Interpretator m) where
   pure      = Interpretator . return
-  (<*>) f a = Interpretator $ do
-    f' <- interpret f
-    a' <- interpret a
-    return $ f' a'
+  (<*>) f a = Interpretator $ interpretDsl f >>= ((>>=) (interpretDsl a) . (return .))
 
 instance Console m => Monad (Interpretator m) where
-  (>>=) a func = Interpretator $ do
-    a1 <- interpret a
-    interpret $ func a1
+  (>>=) a func = Interpretator $ interpretDsl a >>= interpretDsl . func
 
 instance Console m => JavaDsl (Interpretator m) where
   (@?:) = liftA3 $ \x -> (?:) (getBool x)
@@ -56,12 +51,14 @@ instance Console m => JavaDsl (Interpretator m) where
   idle  = pure ()
   group = (>>)
 
-  printGroup v   = Interpretator $ interpret v >>= lift . Console.print . toString
-  printLnGroup v = Interpretator $ interpret v >>= lift . Console.printLn . toString
-  ifGroup c a b  = Interpretator $ interpret c >>= interpret . flip (? a) b . getBool
-  whileGroup c a = Interpretator $ interpret c >>= interpret . flip when (group a $ whileGroup c a) . getBool
+  printGroup v   = Interpretator $ interpretDsl v >>= lift . Console.print . toString
+  printLnGroup v = Interpretator $ interpretDsl v >>= lift . Console.printLn . toString
+  ifGroup c a b  = Interpretator $ interpretDsl c >>= interpretDsl . flip (? a) b . getBool
+  whileGroup c a = Interpretator $ interpretDsl c >>= interpretDsl . flip when (group a $ whileGroup c a) . getBool
 
   program   = const id
+  clazz     = const id
+  fun       = const id
   fun0 name = case name of
     "new Scanner(System.in).nextBoolean" -> Interpretator $ JBoolean <$> lift Console.nextBoolean
     "new Scanner(System.in).nextInt"     -> Interpretator $ JInt <$> lift Console.nextInt

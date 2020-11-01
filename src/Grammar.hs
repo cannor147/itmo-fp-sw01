@@ -7,7 +7,9 @@ import GHC.Base
 
 data Type = TBoolean | TInt | TDouble | TString
 
-data Program = Program Bool [Statement]
+data Program  = Program Bool Class
+data Class    = Class String Function
+newtype Function = Main [Statement]
 
 data Statement = DeclarationStatement Grammar.Type String Expression
                | AssignmentStatement String Expression
@@ -56,7 +58,13 @@ instance Show Program where
 newtype Context = Context {importContext :: Bool}
 
 programToDsl :: JavaDsl p => Program -> p ()
-programToDsl (Program i s) = program i $ statementsToDsl (Context i) s
+programToDsl (Program i c) = program i $ classToDsl (Context i) c
+
+classToDsl :: JavaDsl p => Context -> Class -> p ()
+classToDsl ctx (Class n f) = clazz n $ functionToDsl ctx f
+
+functionToDsl :: JavaDsl p => Context -> Function -> p ()
+functionToDsl ctx (Main s) = fun "main" $ statementsToDsl ctx s
 
 statementsToDsl :: JavaDsl p => Context -> [Statement] -> p ()
 statementsToDsl ctx (x:xs) = group (statementToDsl ctx x) (statementsToDsl ctx xs)

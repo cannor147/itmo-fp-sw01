@@ -6,15 +6,6 @@ import Control.Monad.Cont (liftM2, liftM3, join)
 
 newtype Printer a = Printer { printDsl :: Int -> IO String }
 
-importText :: Bool -> String
-importText a = if a then "import java.util.Scanner;\n\n" else ""
-
-classText :: String -> Int -> String
-classText x offset = indent offset <> "public class Main" <> block offset x
-
-mainText :: String -> Int -> String
-mainText x offset = "\n" <> indent offset <> "public static void main(String[] args)" <> block offset x
-
 printBlock :: Printer a -> Int -> IO String
 printBlock y offset = printDsl y (offset + 1)
 
@@ -63,5 +54,7 @@ instance JavaDsl Printer where
   whileGroup cond a = Printer (\offset -> liftM2 (\x y -> "while " <> capture x <> block offset y) (printDsl cond offset) (printBlock a offset))
   ifGroup cond a b  = Printer (\offset -> liftM3 (\x y z -> "if " <> capture x <> block offset y <> " else" <> block offset z) (printDsl cond offset) (printBlock a offset) (printBlock b offset))
 
+  program i c = Printer (\offset -> fmap (\x -> indent offset <> if i then "import java.util.Scanner;\n\n" else "" <> x <> "\n") (printDsl c offset))
+  clazz   n f = Printer (\offset -> fmap (\x -> indent offset <> "public class " <> n <> block offset x) (printDsl f $ offset + 1))
+  fun     n s = Printer (\offset -> fmap (\x -> "\n" <> indent offset <> "public static void " <> n <> "(String[] args)" <> block offset x) (printDsl s $ offset + 1))
   fun0        = Printer . const . pure . \n -> n <> "()"
-  program i s = Printer $ fmap (\ x -> importText i <> classText (mainText x 1) 0) . const (printDsl s 2)

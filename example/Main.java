@@ -10,5 +10,6 @@ public class Main {
         while (new Scanner(System.in).nextInt() >= 0) {
             System.out.print("aaa ");
         }
+        System.out.print((2 * 2 > 2) ? "Hello, world!" : "test");
     }
 }
