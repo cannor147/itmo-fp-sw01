@@ -74,9 +74,10 @@ import Grammar
 %%
 
 Program
-	: Imports Class						{ $2 }
+	: Imports Class						{ Program $1 $2 }
 Imports
-	: import java '.' util '.' scanner ';'			{ True }
+	: import java '.' util '.' scanner ';'			{ True  }
+	| {- empty -}						{ False }
 Class
 	: public class name '{' Function '}'			{ $5 }
 

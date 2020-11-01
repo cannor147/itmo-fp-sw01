@@ -114,6 +114,7 @@ class JavaDsl code where
   ifGroup      :: code JValue -> code () -> code () -> code ()
   whileGroup   :: code JValue -> code () -> code ()
 
+  program :: Bool -> code () -> code ()
   fun0 :: String -> code JValue
 --  fun1 :: code String -> code JValue -> code JValue
 --  fun2 :: code String -> code JValue -> code JValue -> code JValue

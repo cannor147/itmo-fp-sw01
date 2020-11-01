@@ -61,6 +61,7 @@ instance Console m => JavaDsl (Interpretator m) where
   ifGroup c a b  = Interpretator $ interpret c >>= interpret . flip (? a) b . getBool
   whileGroup c a = Interpretator $ interpret c >>= interpret . flip when (group a $ whileGroup c a) . getBool
 
+  program   = const id
   fun0 name = case name of
     "new Scanner(System.in).nextBoolean" -> Interpretator $ JBoolean <$> lift Console.nextBoolean
     "new Scanner(System.in).nextInt"     -> Interpretator $ JInt <$> lift Console.nextInt

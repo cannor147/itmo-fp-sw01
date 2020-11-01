@@ -9,11 +9,11 @@ import Interpreter
 import Printer
 import Data.Map
 
-parseJava :: IO String -> IO [Statement]
+parseJava :: IO String -> IO Program
 parseJava = (<$>) (parser . alexScanTokens)
 
-interpretJava :: IO [Statement] -> IO ()
-interpretJava = (=<<) (\x -> evalStateT (interpret $ statementsToDsl empty x) empty)
+interpretJava :: IO Program -> IO ()
+interpretJava = (=<<) (\program -> evalStateT (interpret $ programToDsl program) empty)
 
-prettyPrintJava :: IO [Statement] -> IO String
-prettyPrintJava = (=<<) (\x -> printDsl (statementsToDsl empty x) 1)
+prettyPrintJava :: IO Program -> IO String
+prettyPrintJava = (=<<) (\program -> printDsl (programToDsl program) 1)

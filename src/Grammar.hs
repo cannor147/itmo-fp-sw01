@@ -2,11 +2,12 @@
 
 module Grammar where
 
-import Data.Map
 import JavaDsl
 import GHC.Base
 
 data Type = TBoolean | TInt | TDouble | TString
+
+data Program = Program Bool [Statement]
 
 data Statement = DeclarationStatement Grammar.Type String Expression
                | AssignmentStatement String Expression
@@ -49,41 +50,13 @@ instance Show Grammar.Type where
  show TDouble                           = "double"
  show TString                           = "String"
 
-instance Show Statement where
-  show (DeclarationStatement t n e)     = show t <> " " <> n <> " = " <> show e <> ";"
-  show (AssignmentStatement n e)        = n <> " = " <> show e <> ";"
-  show (IfStatement cond a b)           = "if (" <> show cond <> ") {" <> showMany a <> "} else {" <> showMany b <> "}"
-  show (WhileStatement cond a)          = "while (" <> show cond <> ") {" <> showMany a <> "}"
-  show (PrintStatement e)               = "System.out.print(" <> show e <> ");"
-  show (PrintLnStatement e)             = "System.out.println(" <> show e <> ");"
+instance Show Program where
+  show = const "Successfully parsed"
 
-instance Show Expression where
-  show (Ternary a b c)                  = "(" <> show a <> " ? " <> show b <> " : " <> show c <> ")"
-  show (Or a b)                         = "(" <> show a <> " || " <> show b <> ")"
-  show (And a b)                        = "(" <> show a <> " && " <> show b <> ")"
-  show (Eq a b)                         = "(" <> show a <> " == " <> show b <> ")"
-  show (Ne a b)                         = "(" <> show a <> " != " <> show b <> ")"
-  show (Ge a b)                         = "(" <> show a <> " >= " <> show b <> ")"
-  show (Le a b)                         = "(" <> show a <> " <= " <> show b <> ")"
-  show (Gt a b)                         = "(" <> show a <> " > " <> show b <> ")"
-  show (Lt a b)                         = "(" <> show a <> " < " <> show b <> ")"
-  show (Add a b)                        = "(" <> show a <> " + " <> show b <> ")"
-  show (Sub a b)                        = "(" <> show a <> " - " <> show b <> ")"
-  show (Mul a b)                        = "(" <> show a <> " * " <> show b <> ")"
-  show (Div a b)                        = "(" <> show a <> " / " <> show b <> ")"
-  show (StringEq a b)                   = show a <> ".equals(" <> show b <> ")"
-  show (Negate a)                       = "(-" <> show a <> ")"
-  show (Not a)                          = "(!" <> show a <> ")"
-  show (BooleanValue v)                 = show v
-  show (IntValue v)                     = show v
-  show (DoubleValue v)                  = show v
-  show (StringValue v)                  = show v
-  show (Variable n)                     = n
-  show (FunctionCall0 n)                = n <> "()"
-  show (FunctionCall1 n a)              = n <> "(" <> show a <> ")"
-  show (FunctionCall2 n a b)            = n <> "(" <> show a <> ", " <> show b <> ")"
+newtype Context = Context {importContext :: Bool}
 
-type Context = Map String String
+programToDsl :: JavaDsl p => Program -> p ()
+programToDsl (Program i s) = program i $ statementsToDsl (Context i) s
 
 statementsToDsl :: JavaDsl p => Context -> [Statement] -> p ()
 statementsToDsl ctx (x:xs) = group (statementToDsl ctx x) (statementsToDsl ctx xs)
@@ -123,5 +96,7 @@ expressionToDsl ctx expression =
     (IntValue v)          -> (@@) $ JInt v
     (DoubleValue v)       -> (@@) $ JDouble v
     (StringValue v)       -> (@@) $ JString v
-    (FunctionCall0 n)     -> fun0 n
+    (FunctionCall0 n)     -> if importContext ctx
+                             then fun0 n
+                             else error $ "Can't parse function " <> n
     _                     -> (@@) $ JInt 0
